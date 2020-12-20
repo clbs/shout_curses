@@ -112,6 +112,7 @@ while x != 27:
         search_string = screen.getstr(1,26, 20)
         curses.noecho()
         search_items = sc.search(search_string.decode('utf-8'))
+        search_item_stations = search_items['response']['data']['stationlist']['station']
         search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
         box = curses.newwin( max_row + 2, 100, 10, 1 )
         box.box()
