@@ -4,6 +4,7 @@ import time
 class VLCPlayer:
   def __init__(self):
     self.instance = vlc.Instance('--input-repeat=-1', '--fullscreen')
+    self.instance.log_unset()
     self.player = self.instance.media_player_new()
 
   def stream_media(self, media):
