@@ -2,6 +2,7 @@
 import curses
 from math import *
 from shoutcast_data import ShoutCast
+from player import VLCPlayer
 from os import getenv as getenv
 import dotenv
 from dotenv import load_dotenv, find_dotenv
@@ -26,8 +27,11 @@ width = 100
 box = curses.newwin( max_row + 2, 100, 10, 1 )
 box.box()
 
+vlc = VLCPlayer()
+
 sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
 search_items = sc.search("dnb")
+search_item_stations = search_items['response']['data']['stationlist']['station']
 search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
 strings = search_item_titles 
 row_num = len( strings )
@@ -90,7 +94,12 @@ while x != 27:
     if x == ord( "\n" ) and row_num != 0:
         screen.erase()
         screen.border( 0 )
+        station_id = str(search_item_stations[position - 1]['id'])
         screen.addstr( 23, 3, "YOU HAVE PRESSED '" + strings[ position - 1 ] + "' ON POSITION " + str( position ) )
+        screen.addstr( 24, 3, "STATION ID: " + station_id)
+        screen.addstr( 25, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        
     if x == ord("/"):
         screen.erase()
         screen.border(0)
