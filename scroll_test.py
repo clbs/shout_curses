@@ -95,10 +95,13 @@ while x != 27:
         screen.erase()
         screen.border( 0 )
         station_id = str(search_item_stations[position - 1]['id'])
-        screen.addstr( 23, 3, "YOU HAVE PRESSED '" + strings[ position - 1 ] + "' ON POSITION " + str( position ) )
         screen.addstr( 24, 3, "STATION ID: " + station_id)
         screen.addstr( 25, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
         vlc.stream_media(sc.station_info(station_id)['locations'][0])
+    if x == ord( "a" ):
+        screen.addstr( 26, 3, "Volume: " + str(vlc.volume_up()) + "  ")
+    if x == ord ( "z" ):
+        screen.addstr( 26, 3, "Volume: " + str(vlc.volume_down()) + "  ")
         
     if x == ord("/"):
         screen.erase()
