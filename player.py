@@ -46,10 +46,8 @@ class VLCPlayer:
   
   def get_play(self):
     if self.player.is_playing() == 0:
-      self.player.play()
       return "Playing"
     elif self.player.is_playing() == 1:
-      self.player.stop()
       return "Stopped" 
   
   def play(self):

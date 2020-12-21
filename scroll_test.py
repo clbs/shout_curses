@@ -66,7 +66,7 @@ def draw_scroll_box():
                 break
             if i == row_num:
                 break
-            
+
 draw_scroll_box()
 
 screen.refresh()
@@ -163,7 +163,12 @@ while x != 27:
         position = 1
         page = 1
         draw_scroll_box()
-
+        screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+        screen.addstr( 24, 3, "TRACK: ")
+        screen.addstr( 25, 3, "STATION ID: " + station_id)
+        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr( 28, 3, "Status: " + vlc.get_play())
         screen.refresh()
         box.refresh()
         screen.border( 0 )
