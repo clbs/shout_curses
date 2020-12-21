@@ -1,104 +1,185 @@
+#from __future__ import division  #You don't need this in Python3
 import curses
-import curses.textpad as textpad
-import curses.panel as panel
-import traceback
-import scroll_window as sw
+from math import *
+from shoutcast_data import ShoutCast
+from player import VLCPlayer
+from os import getenv as getenv
+import dotenv
+from dotenv import load_dotenv, find_dotenv
 
-scr_width = 100
-scr_height = 100
+load_dotenv(find_dotenv())
+
+vlc = VLCPlayer()
+
+screen = curses.initscr()
+curses.noecho()
+curses.cbreak()
+curses.start_color()
+screen.keypad( 1 )
+curses.init_pair(1,curses.COLOR_BLACK, curses.COLOR_CYAN)
+highlightText = curses.color_pair( 1 )
+normalText = curses.A_NORMAL
+screen.border( 0 )
+curses.curs_set( 0 )
+max_row = 20 #max number of rows
+height = 100
+width = 100
+height, width = screen.getmaxyx()
+box = curses.newwin( max_row + 2, width - 2 , 1, 1 )
+box.box()
 
 
-def create_panel(panel_title, height, width, x_coordinate, y_coordinate):
-    window_panel = curses.newwin(height, width, y_coordinate, x_coordinate)
-    window_panel.erase()
-    window_panel.box()
-    window_panel.addstr(0, 0, panel_title)
-    created_panel = panel.new_panel(window_panel)
-    return window_panel, created_panel
 
-def base_screen(stdscr):
-    stdscr.box()
-    stdscr.border(0)
-    stdscr.addstr(5, 5, 'Hello from Curses!', curses.A_BOLD)
-    stdscr.addstr(6, 5, 'Press q to close this screen', curses.A_NORMAL)
+sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
+search_items = sc.search("dnb")
+search_item_stations = search_items['response']['data']['stationlist']['station']
+search_item_titles = list(map(lambda x: str(x['name']), search_items['response']['data']['stationlist']['station']))
+strings = search_item_titles 
+row_num = len( strings )
 
-def search_screen(stdscr):
-    stdscr.box()
-    stdscr.border(0)
-    stdscr.addstr(5, 5, 'Hello from Curses!', curses.A_BOLD)
-    stdscr.addstr(6, 5, 'Press q to close this screen', curses.A_NORMAL)
+screen.addstr( 23, 3, "PLAYING STATION:            ")
+screen.addstr( 24, 3, "TRACK:                                             ")
+screen.addstr( 25, 3, "STATION ID:                 ")
+screen.addstr( 26, 3, "STATION URL:                           ")
+screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+screen.addstr( 28, 3, "Status: " + vlc.get_play())
+screen.addstr( 29, 3, vlc.get_mute())
 
-def enter_is_terminate(x):
-    if x == 10:
-        x = 7
-    return x
+pages = int( ceil( row_num / max_row ) )
+position = 1
+page = 1
 
-def main_interface(stdscr):
-    try:
-        # -- Initialize --
-        #stdscr = curses.initscr()   # initialize curses screen
-        curses.noecho()             # turn off auto echoing of keypress on to screen
-        curses.cbreak()             # enter break mode where pressing Enter key
-                                    #  after keystroke is not required for it to register
-        stdscr.keypad(1)            # enable special Key values such as curses.KEY_LEFT etc
-
-        # -- Perform an action with Screen --
-        stdscr.box()
-        stdscr.border(0)
-        stdscr.addstr(1, 1, 'ShoutCurses: A Curses Shoutcast player', curses.A_BOLD)
-        #stdscr.addstr(6, 5, 'Press q to close this screen', curses.A_NORMAL)
-        
-
-        while True:
-            # stay in this loop till the user presses 'q'
-            stdscr.refresh()
-            ch = stdscr.getch()
-            height, width = stdscr.getmaxyx()
-            if ch == ord('q'):
+def draw_scroll_box():
+    for i in range( 1 + ( max_row * ( page - 1 ) ), max_row + 1 + ( max_row * ( page - 1 ) ) ):
+        if row_num == 0:
+            box.addstr( 1, 1, "There aren't strings",  highlightText )
+        else:
+            if ( i + ( max_row * ( page - 1 ) ) == position + ( max_row * ( page - 1 ) ) ):
+                line_string = str( i ) + ": " + strings[ i - 1 ] + " " * width
+                box.addstr( i - ( max_row * ( page - 1 ) ), 2, line_string[0:width - 5], highlightText )
+            else:
+                line_string = str( i ) + ": " + strings[ i - 1 ] + " " * width
+                box.addstr( i - ( max_row * ( page - 1 ) ), 2, line_string[0:width - 5], normalText )
+            if i >= row_num and i <= len(strings):
+                box.clrtobot()
+                box.border(0)
                 break
-            if ch == ord('s'):
-                stdscr.addstr(10,5, 'Search for a stream:', curses.A_BOLD)
-                #window1, panel1 = create_panel('Results', 30, 50, 5, 11)
-                #curses.panel.update_panels()
-                stdscr.refresh()
-                stdscr.move(10,26)
-                #test = stdscr.getch()
-                #test_text = textpad.Textbox(stdscr).edit(enter_is_terminate)
-                content_test = ["content 1", "content 2", "content 3", "content 4", "content 5", "content 6", "content 7", "content 8", "content 9", "content 10", "content 11", "content 12", "content 13", "content 14", "content 15"]
-                curses.echo()
-                search_string = stdscr.getstr(10,26, 20)
-                curses.noecho()
-                stdscr.addstr(11,5, search_string, curses.A_BOLD) 
-                
-            if ch == ord('x'):
-                stdscr.addstr(10,5, 'Search for a stream', curses.A_BOLD)
-                content_test = ["content 1", "content 2", "content 3", "content 4", "content 5", "content 6", "content 7", "content 8", "content 9", "content 10", "content 11", "content 12", "content 13", "content 14", "content 15"]
-                window1, panel1 = create_panel('Results', 20, width - 2, 1, 10)
-                curses.panel.update_panels()  
-                #x = sw.scroll_window(content_test, panel1)
-                #
-                # ??????????????????????????????????????????????stdscr.refresh()
-                #panel1.top()
-                #curses.panel.update_panels()
-                #stdscr.refresh()
-                #tb = curses.textpad.Textbox(window1)
-                #text = tb.edit(enter_is_terminate)
-                stdscr.refresh()
-            # stdscr.attron(curses.color_pair(3))
-            # stdscr.addstr(height-1, 0, "status bar here")
-            # stdscr.addstr(height-1, len("status bar here"), " " * (width - len("status bar here") - 1))
-            # stdscr.attroff(curses.color_pair(3))
-            # stdscr.refresh()
-        # -- End of user code --
-    except:
-        traceback.print_exc()     # print trace back log of the error
+            if i == row_num:
+                break
 
-    finally:
-        # --- Cleanup on exit ---
-        stdscr.keypad(0)
+draw_scroll_box()
+
+screen.refresh()
+box.refresh()
+
+def get_row_end():
+    if  max_row + 1 + ( max_row * ( page - 1 ))-1 < len(strings):
+        return max_row + 1 + ( max_row * ( page - 1 ))-1
+    else:
+        return len(strings)
+
+
+x = screen.getch()
+while x != 27:
+    height, width = screen.getmaxyx()
+    if x == curses.KEY_DOWN:
+        if page == 1:
+            if position < get_row_end():
+                position = position + 1
+            else:
+                if pages > 1:
+                    page = page + 1
+                    position = 1 + ( max_row * ( page - 1 ) )
+        elif page == pages:
+            if position < row_num:
+                position = position + 1
+        else:
+            if position < max_row + ( max_row * ( page - 1 ) ):
+                position = position + 1
+            else:
+                page = page + 1
+                position = 1 + ( max_row * ( page - 1 ) )
+    if x == curses.KEY_UP:
+        if page == 1:
+            if position > 1:
+                position = position - 1
+        else:
+            if position > ( 1 + ( max_row * ( page - 1 ) ) ):
+                position = position - 1
+            else:
+                page = page - 1
+                position = max_row + ( max_row * ( page - 1 ) )
+    if x == curses.KEY_LEFT:
+        if page > 1:
+            page = page - 1
+            position = 1 + ( max_row * ( page - 1 ) )
+    if x == curses.KEY_RIGHT:
+        if page < pages:
+            page = page + 1
+            position = ( 1 + ( max_row * ( page - 1 ) ) )
+
+
+    if x == ord( "\n" ) and row_num != 0:
+        screen.erase()
+        screen.border( 0 )
+        station_id = str(search_item_stations[position - 1]['id'])
+        station_title = str(search_item_stations[position - 1]['name'])
+        # Track is unreliable, needs continuously updated through a service as well
+        #station_track = str(search_item_stations[position - 1]['ct'])
+        screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+        screen.addstr( 24, 3, "TRACK: ")
+        screen.addstr( 25, 3, "STATION ID: " + station_id)
+        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        screen.addstr( 28, 3, "Status: " + vlc.get_play())
+        screen.border( 0 )
+        box.border( 0 )
+    if x == ord( "a" ):
+        screen.addstr( 27, 3, "Volume: " + vlc.volume_up() + "  ")
+    if x == ord ( "z" ):
+        screen.addstr( 27, 3, "Volume: " + vlc.volume_down() + "  ")
+    if x == ord ( "m" ):
+        screen.addstr( 29, 3, vlc.toggle_mute())
+    if x == ord ( " " ):
+        screen.addstr(28, 3, "Status: " + vlc.toggle_play() + "   ")
+    if x == ord("/"):
+        screen.erase()
+        screen.border(0)
+        screen.addstr(1,1, 'Search for a stream:', curses.A_BOLD)
+        #window1, panel1 = create_panel('Results', 30, 50, 5, 11)
+        #curses.panel.update_panels()
+        screen.refresh()
+        screen.move(10,26)
         curses.echo()
-        curses.nocbreak()
-        curses.endwin()
+        search_string = screen.getstr(1,26, 20)
+        curses.noecho()
+        search_items = sc.search(search_string.decode('utf-8'))
+        search_item_stations = search_items['response']['data']['stationlist']['station']
+        search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
+        box = curses.newwin( max_row + 2, width - 2, 1, 1 )
+        box.box()
+        strings = search_item_titles 
+        row_num = len( strings )
+        pages = int( ceil( row_num / max_row ) )
+        position = 1
+        page = 1
+        draw_scroll_box()
+        screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+        screen.addstr( 24, 3, "TRACK: ")
+        screen.addstr( 25, 3, "STATION ID: " + station_id)
+        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr( 28, 3, "Status: " + vlc.get_play())
+        screen.refresh()
+        box.refresh()
+        screen.border( 0 )
+        box.border( 0 )
 
-if __name__ == '__main__':
-    curses.wrapper(main_interface)
+    draw_scroll_box()
+    screen.refresh()
+    box.refresh()
+    x = screen.getch()
+
+curses.endwin()
+exit()

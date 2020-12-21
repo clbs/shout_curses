@@ -69,10 +69,3 @@ class ShoutCast:
     except Exception as e:
       return self.error_body(e)
 
-#x = ShoutCast(getenv('SHOUTCAST_API_KEY', 'json')
-#print(json.dumps(x.search("industrial")))
-#print(json.dumps(x.generes()))
-#print(json.dumps(x.stations_by_genre_id('91')))
-#print(json.dumps(x.station_info("23036")))
-#print(json.dumps(x.station_info("1015786")))
-
