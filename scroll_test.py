@@ -9,7 +9,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-
+vlc = VLCPlayer()
 
 screen = curses.initscr()
 curses.noecho()
@@ -21,43 +21,70 @@ highlightText = curses.color_pair( 1 )
 normalText = curses.A_NORMAL
 screen.border( 0 )
 curses.curs_set( 0 )
-max_row = 10 #max number of rows
+max_row = 20 #max number of rows
 height = 100
 width = 100
-box = curses.newwin( max_row + 2, 100, 10, 1 )
+height, width = screen.getmaxyx()
+box = curses.newwin( max_row + 2, width - 2 , 1, 1 )
 box.box()
 
-vlc = VLCPlayer()
+
 
 sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
 search_items = sc.search("dnb")
 search_item_stations = search_items['response']['data']['stationlist']['station']
-search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
+search_item_titles = list(map(lambda x: str(x['name']), search_items['response']['data']['stationlist']['station']))
 strings = search_item_titles 
 row_num = len( strings )
+
+screen.addstr( 23, 3, "PLAYING STATION:            ")
+screen.addstr( 24, 3, "TRACK:                                             ")
+screen.addstr( 25, 3, "STATION ID:                 ")
+screen.addstr( 26, 3, "STATION URL:                           ")
+screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+screen.addstr( 28, 3, "Status: " + vlc.get_play())
+screen.addstr( 29, 3, vlc.get_mute())
 
 pages = int( ceil( row_num / max_row ) )
 position = 1
 page = 1
-for i in range( 1, max_row + 1 ):
-    if row_num == 0:
-        box.addstr( 1, 1, "There aren't strings", highlightText )
-    else:
-        if (i == position):
-            box.addstr( i, 2, str( i ) + " - " + strings[ i - 1 ], highlightText )
+
+def draw_scroll_box():
+    for i in range( 1 + ( max_row * ( page - 1 ) ), max_row + 1 + ( max_row * ( page - 1 ) ) ):
+        if row_num == 0:
+            box.addstr( 1, 1, "There aren't strings",  highlightText )
         else:
-            box.addstr( i, 2, str( i ) + " - " + strings[ i - 1 ], normalText )
-        if i == row_num:
-            break
+            if ( i + ( max_row * ( page - 1 ) ) == position + ( max_row * ( page - 1 ) ) ):
+                line_string = str( i ) + ": " + strings[ i - 1 ] + " " * width
+                box.addstr( i - ( max_row * ( page - 1 ) ), 2, line_string[0:width - 5], highlightText )
+            else:
+                line_string = str( i ) + ": " + strings[ i - 1 ] + " " * width
+                box.addstr( i - ( max_row * ( page - 1 ) ), 2, line_string[0:width - 5], normalText )
+            if i >= row_num and i <= len(strings):
+                box.clrtobot()
+                box.border(0)
+                break
+            if i == row_num:
+                break
+            
+draw_scroll_box()
 
 screen.refresh()
 box.refresh()
 
+def get_row_end():
+    if  max_row + 1 + ( max_row * ( page - 1 ))-1 < len(strings):
+        return max_row + 1 + ( max_row * ( page - 1 ))-1
+    else:
+        return len(strings)
+
+
 x = screen.getch()
 while x != 27:
+    height, width = screen.getmaxyx()
     if x == curses.KEY_DOWN:
         if page == 1:
-            if position < i:
+            if position < get_row_end():
                 position = position + 1
             else:
                 if pages > 1:
@@ -86,7 +113,6 @@ while x != 27:
         if page > 1:
             page = page - 1
             position = 1 + ( max_row * ( page - 1 ) )
-
     if x == curses.KEY_RIGHT:
         if page < pages:
             page = page + 1
@@ -95,14 +121,26 @@ while x != 27:
         screen.erase()
         screen.border( 0 )
         station_id = str(search_item_stations[position - 1]['id'])
-        screen.addstr( 24, 3, "STATION ID: " + station_id)
-        screen.addstr( 25, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        station_title = str(search_item_stations[position - 1]['name'])
+        # Track is unreliable, needs continuously updated through a service as well
+        #station_track = str(search_item_stations[position - 1]['ct'])
+        screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+        screen.addstr( 24, 3, "TRACK: ")
+        screen.addstr( 25, 3, "STATION ID: " + station_id)
+        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
         vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        screen.addstr( 28, 3, "Status: " + vlc.get_play())
+        screen.border( 0 )
+        box.border( 0 )
     if x == ord( "a" ):
-        screen.addstr( 26, 3, "Volume: " + str(vlc.volume_up()) + "  ")
+        screen.addstr( 27, 3, "Volume: " + vlc.volume_up() + "  ")
     if x == ord ( "z" ):
-        screen.addstr( 26, 3, "Volume: " + str(vlc.volume_down()) + "  ")
-        
+        screen.addstr( 27, 3, "Volume: " + vlc.volume_down() + "  ")
+    if x == ord ( "m" ):
+        screen.addstr( 29, 3, vlc.toggle_mute())
+    if x == ord ( " " ):
+        screen.addstr(28, 3, "Status: " + vlc.toggle_play() + "   ")
     if x == ord("/"):
         screen.erase()
         screen.border(0)
@@ -117,40 +155,21 @@ while x != 27:
         search_items = sc.search(search_string.decode('utf-8'))
         search_item_stations = search_items['response']['data']['stationlist']['station']
         search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
-        box = curses.newwin( max_row + 2, 100, 10, 1 )
+        box = curses.newwin( max_row + 2, width - 2, 1, 1 )
         box.box()
         strings = search_item_titles 
         row_num = len( strings )
         pages = int( ceil( row_num / max_row ) )
         position = 1
         page = 1
-        for i in range( 1, max_row + 1 ):
-            if row_num == 0:
-                box.addstr( 1, 1, "There aren't strings", highlightText )
-            else:
-                if (i == position):
-                    box.addstr( i, 2, str( i ) + " - " + strings[ i - 1 ], highlightText )
-                else:
-                    box.addstr( i, 2, str( i ) + " - " + strings[ i - 1 ], normalText )
-                if i == row_num:
-                    break
+        draw_scroll_box()
 
         screen.refresh()
         box.refresh()
         screen.border( 0 )
         box.border( 0 )
 
-    for i in range( 1 + ( max_row * ( page - 1 ) ), max_row + 1 + ( max_row * ( page - 1 ) ) ):
-        if row_num == 0:
-            box.addstr( 1, 1, "There aren't strings",  highlightText )
-        else:
-            if ( i + ( max_row * ( page - 1 ) ) == position + ( max_row * ( page - 1 ) ) ):
-                box.addstr( i - ( max_row * ( page - 1 ) ), 2, str( i ) + " - " + strings[ i - 1 ], highlightText )
-            else:
-                box.addstr( i - ( max_row * ( page - 1 ) ), 2, str( i ) + " - " + strings[ i - 1 ], normalText )
-            if i == row_num:
-                break
-
+    draw_scroll_box()
 
 
     screen.refresh()
