@@ -37,7 +37,7 @@ sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
 search_items = sc.search("dnb")
 search_item_stations = search_items['response']['data']['stationlist']['station']
 search_item_titles = list(map(lambda x: str(x['name']), search_items['response']['data']['stationlist']['station']))
-strings = search_item_titles 
+strings = search_item_titles
 row_num = len( strings )
 
 screen.addstr( 23, 3, "PLAYING STATION:            ")
@@ -159,11 +159,23 @@ while x != 27:
         search_string = screen.getstr(1,26, 20)
         curses.noecho()
         search_items = sc.search(search_string.decode('utf-8'))
-        search_item_stations = search_items['response']['data']['stationlist']['station']
-        search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
+        if search_items['response']['data']['stationlist']['station']:
+            if isinstance(search_items['response']['data']['stationlist']['station'], list):
+                search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
+                search_item_stations = search_items['response']['data']['stationlist']['station'] 
+            else:
+                search_item_titles = []
+                search_item_stations = []
+                search_item_titles.append(search_items['response']['data']['stationlist']['station']['name'])
+                search_item_stations.append(search_items['response']['data']['stationlist']['station'])
+        else:
+            search_item_titles = []
+            search_item_stations = []
+        #search_item_stations = search_items['response']['data']['stationlist']['station'] if search_items['response']['data']['stationlist']['station'] else []
+        #search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station'])) if search_items['response']['data']['stationlist']['station'] else []
         box = curses.newwin( max_row + 2, width - 2, 1, 1 )
         box.box()
-        strings = search_item_titles 
+        strings = search_item_titles
         row_num = len( strings )
         pages = int( ceil( row_num / max_row ) )
         position = 1
