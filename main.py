@@ -28,6 +28,9 @@ height, width = screen.getmaxyx()
 box = curses.newwin( max_row + 2, width - 2 , 1, 1 )
 box.box()
 
+station_title = ""
+station_id = ""
+station_url = ""
 
 
 sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
@@ -126,10 +129,11 @@ while x != 27:
         station_title = str(search_item_stations[position - 1]['name'])
         # Track is unreliable, needs continuously updated through a service as well
         #station_track = str(search_item_stations[position - 1]['ct'])
+        station_url = sc.station_info(station_id)['locations'][0]
         screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
         screen.addstr( 24, 3, "TRACK: ")
         screen.addstr( 25, 3, "STATION ID: " + station_id)
-        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 26, 3, "STATION URL: " + station_url)
         screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
         vlc.stream_media(sc.station_info(station_id)['locations'][0])
         screen.addstr( 28, 3, "Status: " + vlc.get_play())
@@ -168,7 +172,7 @@ while x != 27:
         screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
         screen.addstr( 24, 3, "TRACK: ")
         screen.addstr( 25, 3, "STATION ID: " + station_id)
-        screen.addstr( 26, 3, "STATION URL: " + sc.station_info(station_id)['locations'][0])
+        screen.addstr( 26, 3, "STATION URL: " + station_url)
         screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
         screen.addstr( 28, 3, "Status: " + vlc.get_play())
         screen.refresh()
