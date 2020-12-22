@@ -26,6 +26,7 @@ height = 100
 width = 100
 height, width = screen.getmaxyx()
 box = curses.newwin( max_row + 2, width - 2 , 1, 1 )
+search_string = ""
 box.box()
 
 station_title = ""
@@ -34,6 +35,7 @@ station_url = ""
 
 
 sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
+# this should be removed eventually
 search_items = sc.search("dnb")
 search_item_stations = search_items['response']['data']['stationlist']['station']
 search_item_titles = list(map(lambda x: str(x['name']), search_items['response']['data']['stationlist']['station']))
@@ -55,7 +57,7 @@ page = 1
 def draw_scroll_box():
     for i in range( 1 + ( max_row * ( page - 1 ) ), max_row + 1 + ( max_row * ( page - 1 ) ) ):
         if row_num == 0:
-            box.addstr( 1, 1, "There aren't strings",  highlightText )
+            box.addstr( 1, 1, "No results for: " + search_string,  highlightText )
         else:
             if ( i + ( max_row * ( page - 1 ) ) == position + ( max_row * ( page - 1 ) ) ):
                 line_string = str( i ) + ": " + strings[ i - 1 ] + " " * width
@@ -125,17 +127,25 @@ while x != 27:
     if x == ord( "\n" ) and row_num != 0:
         screen.erase()
         screen.border( 0 )
+        
         station_id = str(search_item_stations[position - 1]['id'])
         station_title = str(search_item_stations[position - 1]['name'])
         # Track is unreliable, needs continuously updated through a service as well
         #station_track = str(search_item_stations[position - 1]['ct'])
-        station_url = sc.station_info(station_id)['locations'][0]
-        screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
-        screen.addstr( 24, 3, "TRACK: ")
-        screen.addstr( 25, 3, "STATION ID: " + station_id)
-        screen.addstr( 26, 3, "STATION URL: " + station_url)
-        screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        if len(sc.station_info(station_id)['locations']) > 0:
+            station_url = sc.station_info(station_id)['locations'][0]
+            screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+            screen.addstr( 24, 3, "TRACK: ")
+            screen.addstr( 25, 3, "STATION ID: " + station_id)
+            screen.addstr( 26, 3, "STATION URL: " + station_url)
+            screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+            vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        else:
+            screen.addstr( 23, 3, "PLAYING STATION: " + station_title)
+            screen.addstr( 24, 3, "TRACK: ")
+            screen.addstr( 25, 3, "STATION ID: " + station_id)
+            screen.addstr( 26, 3, "STATION URL: " + "Station URL not found")
+            screen.addstr( 27, 3, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
         screen.addstr( 28, 3, "Status: " + vlc.get_play())
         screen.border( 0 )
         box.border( 0 )
@@ -156,10 +166,12 @@ while x != 27:
         screen.refresh()
         screen.move(10,26)
         curses.echo()
-        search_string = screen.getstr(1,26, 20)
+        search_string = screen.getstr(1,26, 20).decode('utf-8')
         curses.noecho()
-        search_items = sc.search(search_string.decode('utf-8'))
-        if search_items['response']['data']['stationlist']['station']:
+        search_items = sc.search(search_string)
+        screen.erase()
+        screen.addstr(41,3,str(search_items.keys()))
+        if "'station'" in str(search_items):
             if isinstance(search_items['response']['data']['stationlist']['station'], list):
                 search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
                 search_item_stations = search_items['response']['data']['stationlist']['station'] 
@@ -171,8 +183,7 @@ while x != 27:
         else:
             search_item_titles = []
             search_item_stations = []
-        #search_item_stations = search_items['response']['data']['stationlist']['station'] if search_items['response']['data']['stationlist']['station'] else []
-        #search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station'])) if search_items['response']['data']['stationlist']['station'] else []
+
         box = curses.newwin( max_row + 2, width - 2, 1, 1 )
         box.box()
         strings = search_item_titles
