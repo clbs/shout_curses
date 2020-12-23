@@ -170,7 +170,6 @@ while x != 27:
         curses.noecho()
         search_items = sc.search(search_string)
         screen.erase()
-        screen.addstr(41,3,str(search_items.keys()))
         if "'station'" in str(search_items):
             if isinstance(search_items['response']['data']['stationlist']['station'], list):
                 search_item_titles = list(map(lambda x: x['name'], search_items['response']['data']['stationlist']['station']))
