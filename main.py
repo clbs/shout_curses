@@ -67,7 +67,7 @@ def draw_scroll_box():
             box.addstr(1, 1, "No items found" + search_string,  highlightText)
         else:
             if (i + (max_row * (page - 1)) == position + (max_row * (page - 1))):
-                line_string = str(i) + ": " + strings[i - 1] + " " * width
+                line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
                 box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
             else:
                 line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
@@ -271,6 +271,7 @@ while x != 27:
     if x == ord (" "):
         screen.addstr(33, 2, "Status: " + vlc.toggle_play() + "   ")
     if x == ord("f"):
+        message_box_apply("Favorites list")
         stations = user_data.get_stations()
         favorites = list(map(lambda x: x['id'], stations))
         if "'station'" in str(search_items):
@@ -328,6 +329,7 @@ while x != 27:
             search_item_titles = []
             search_item_stations = []
 
+        message_box_apply(f"Search results for: {search_string}")
         box = curses.newwin(max_row + 2, width - 2, 1, 1)
         box.box()
         strings = search_item_titles
