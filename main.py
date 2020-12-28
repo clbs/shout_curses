@@ -90,7 +90,6 @@ def draw_message_box():
 
 draw_scroll_box()
 draw_message_box()
-
 screen.refresh()
 box.refresh()
 message_box.refresh()
@@ -274,7 +273,7 @@ while x != 27:
         message_box_apply("Favorites list")
         stations = user_data.get_stations()
         favorites = list(map(lambda x: x['id'], stations))
-        if "'station'" in str(search_items):
+        if len(stations) > 0:
             search_item_titles = list(map(lambda x: "❤ " + x['name'] if int(x['id']) in favorites else x['name'], stations))
             search_item_stations = stations
         else:

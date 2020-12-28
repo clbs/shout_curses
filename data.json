@@ -14,12 +14,8 @@
     ],
     "stations": [
         {
-            "id": 1693229,
-            "name": "Chill DNB"
-        },
-        {
-            "id": 895881,
-            "name": "LMW.FM = LONDON MOST WANTED"
+            "id": 23036,
+            "name": "DnBRadio.com"
         },
         {
             "id": 1642016,
@@ -28,50 +24,6 @@
         {
             "id": 1654958,
             "name": "Bassdrive - Worldwide Drum and Bass Radio"
-        },
-        {
-            "id": 1270776,
-            "name": "Bassdrive - Worldwide Drum and Bass Radio"
-        },
-        {
-            "id": 1331877,
-            "name": "Anima Amoris [Drum and Bass] 160 MP3"
-        },
-        {
-            "id": 1835038,
-            "name": "Bass Station DnB on MixLive.ie"
-        },
-        {
-            "id": 237867,
-            "name": "fsr:: fullspectrumradio.com:: dnb.bass.techno"
-        },
-        {
-            "id": 1886593,
-            "name": "Cathedral XIII"
-        },
-        {
-            "id": 99180999,
-            "name": "Made in Classic"
-        },
-        {
-            "id": 99183291,
-            "name": "e.v.e"
-        },
-        {
-            "id": 1744598,
-            "name": "Zwischen-Welten Radio"
-        },
-        {
-            "id": 1811190,
-            "name": "Essential Clubbers"
-        },
-        {
-            "id": 69773,
-            "name": "Radio Sandels"
-        },
-        {
-            "id": 99180054,
-            "name": "Oldies Mexico"
         }
     ],
     "volume": 40,
