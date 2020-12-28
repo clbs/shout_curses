@@ -159,6 +159,10 @@ while x != 27:
             screen.addstr(27, 2, "STATION ID: " + station_id)
             screen.addstr(28, 2, "STATION URL: " + "Station URL not found")
             screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        box = curses.newwin(max_row + 2, width - 2, 1, 1)
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
+        box.box()
+        message_box.box()
         screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.border(0)
         box.border(0)
@@ -190,7 +194,9 @@ while x != 27:
             message_box_apply(f"Error adding {save_title}, no stream location")
 
         box = curses.newwin(max_row + 2, width - 2, 1, 1)
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
         box.box()
+        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
@@ -231,7 +237,9 @@ while x != 27:
             search_item_titles = list(map(lambda x: "❤ " + x['name'] if int(x['id']) in favorites else x['name'], search_item_stations))
 
         box = curses.newwin(max_row + 2, width - 2, 1, 1)
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
         box.box()
+        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
@@ -274,7 +282,9 @@ while x != 27:
             search_item_stations = []
 
         box = curses.newwin(max_row + 2, width - 2, 1, 1)
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
         box.box()
+        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
@@ -320,7 +330,9 @@ while x != 27:
 
         message_box_apply(f"Search results for: {search_string}")
         box = curses.newwin(max_row + 2, width - 2, 1, 1)
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
         box.box()
+        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))

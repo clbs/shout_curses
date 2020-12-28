@@ -2,8 +2,6 @@ import requests
 import json
 from os import getenv as getenv
 import re
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv())
 
 class ShoutCast:
   def __init__(self, api_key, return_format):
