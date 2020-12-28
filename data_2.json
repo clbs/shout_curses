@@ -1,0 +1,65 @@
+{
+  "searches":[
+      "dnb",
+      "goth",
+      "canadian",
+      "deathcore",
+      "metalcore",
+      "industrial"
+      ],
+  "genres":[
+      "80's rock",
+      "Classical",
+      "Not really sure what I'm going to do with the genres list"
+      ],
+  "stations":[
+          {
+              "title":"station title 1",
+              "id":23036,
+              "url":"station url 1"
+          },
+          {
+              "title":"station title 2",
+              "id":23037,
+              "url":"station url 2"
+          },
+          {
+              "title":"station title 3",
+              "id":23038,
+              "url":"station url 3"
+          },
+          {
+              "title":"station title 4",
+              "id":23039,
+              "url":"station url 4"
+          },
+          {
+              "title":"station title 5",
+              "id":23040,
+              "url":"station url 5"
+          },
+          {
+              "title":"station title 6",
+              "id":23041,
+              "url":"station url 6"
+          },
+          {
+              "title":"station title 7",
+              "id":23042,
+              "url":"station url 7"
+          },
+          {
+              "title":"station title 8",
+              "id":23043,
+              "url":"station url 8"
+          },
+          {
+              "title":"station title 9",
+              "id":23036,
+              "url":"station url 9"
+          }
+      ],
+  "volume": 40,
+  "mute": false
+  }
+  

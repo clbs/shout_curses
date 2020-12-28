@@ -11,22 +11,62 @@ class UserData:
     
   def save_station(self, station):
     try:
-      with open(self.config_filename, "w+") as user_data:
-        data = json.loads(user_data)
-        if station.id and station.title and station.url:
-          # check to see if station id is already in station list, if not
-          # append list with new station
-          data.stations.append(station)
-          new_data = json.dumps(data)
-          user_data.write(new_data)
+      with open(self.config_filename, "r+") as user_data:
+        data = json.load(user_data)
+        if station['id'] and station['name']:
+          data['stations'].append(station)
+          user_data.seek(0)
+          user_data.write(json.dumps(data, indent=4))
+          user_data.truncate()
+          user_data.close()
     except Exception as e:
       print(e)
-      return 1
 
-    return 0
+  def remove_station(self, station_id):
+    try:
+      with open(self.config_filename, "r+") as user_data:
+        data = json.load(user_data)
+        station_ids = []
+        if len(data['stations']) > 0:
+          for station in data['stations']:
+            station_ids.append(station['id'])
+          data['stations'].pop(station_ids.index(int(station_id)))
+          user_data.seek(0)
+          user_data.write(json.dumps(data, indent=4))
+          user_data.truncate()
+        user_data.close()
+    except Exception as e:
+      print(e)
 
   def get_saved_station_ids(self):
-    return 0
+    try:
+      with open(self.config_filename, "r") as user_data:
+        data = json.load(user_data)
+        station_ids = []
+        if len(data['stations']) > 0:
+         for station in data['stations']:
+           station_ids.append(station['id'])
+        else:
+          return station_ids
+        user_data.close()
+        return station_ids
+    except Exception as e:
+      print(e)
+
+  def get_saved_station_titles(self):
+    try:
+      with open(self.config_filename, "r") as user_data:
+        data = json.load(user_data)
+        station_titles = []
+        if len(data['stations']) > 0:
+          for station in data['stations']:
+            station_titles.append(station['title'])
+        else:
+          return station_titles
+        user_data.close()
+        return station_titles
+    except Exception as e:
+      print(e)
 
   def saved_station_check(self, station_id):
     return 0
@@ -34,12 +74,18 @@ class UserData:
   def get_station_list_position(self, station_id):
     return 0
 
-  def remove_station(self,station):
-    return 0
-
   def get_stations(self):
-    #get all stations, check to see if valid data is found for every object in array
-    return [{}]
+    try:
+      with open(self.config_filename, "r") as user_data:
+        data = json.load(user_data)
+        station_titles = []
+        if len(data['stations']) > 0:
+          return data['stations']
+        user_data.close()
+        return station_titles
+    except Exception as e:
+      print(e)
+      return [{}]
 
   def save_search(self, search_term):
     return 0
@@ -66,6 +112,11 @@ class UserData:
     return 0
 
   
-
+#x = UserData("data.json")
+#
+#stations = x.get_stations()
+#
+#for station in stations:
+#  print(station)
   
   
