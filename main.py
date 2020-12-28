@@ -49,13 +49,12 @@ search_item_titles = list(map(lambda x: str("❤ " + x['name'] if int(x['id']) i
 strings = search_item_titles
 row_num = len(strings)
 
-screen.addstr(28, 2, "PLAYING STATION:            ")
-screen.addstr(29, 2, "TRACK:                                             ")
-screen.addstr(30, 2, "STATION ID:                 ")
-screen.addstr(31, 2, "STATION URL:                           ")
-screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-screen.addstr(33, 2, "Status: " + vlc.get_play())
-screen.addstr(34, 2, vlc.get_mute())
+screen.addstr(26, 2, "PLAYING STATION:            ")
+screen.addstr(27, 2, "STATION ID:                 ")
+screen.addstr(28, 2, "STATION URL:                           ")
+screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+screen.addstr(30, 2, "Status: " + vlc.get_play())
+screen.addstr(31, 2, vlc.get_mute())
 
 pages = int(ceil(row_num / max_row))
 position = 1
@@ -146,26 +145,21 @@ while x != 27:
     if x == ord("\n") and row_num != 0:
         screen.erase()
         screen.border(0)
-        
         station_id = str(search_item_stations[position - 1]['id'])
         station_title = str(search_item_stations[position - 1]['name'])
-        # Track is unreliable, needs continuously updated through a service as well
-        #station_track = str(search_item_stations[position - 1]['ct'])
         if len(sc.station_info(station_id)['locations']) > 0:
             station_url = sc.station_info(station_id)['locations'][0]
-            screen.addstr(28, 2, "PLAYING STATION: " + station_title)
-            screen.addstr(29, 2, "TRACK: ")
-            screen.addstr(30, 2, "STATION ID: " + station_id)
-            screen.addstr(31, 2, "STATION URL: " + station_url)
-            screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+            screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+            screen.addstr(27, 2, "STATION ID: " + station_id)
+            screen.addstr(28, 2, "STATION URL: " + station_url)
+            screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
             vlc.stream_media(sc.station_info(station_id)['locations'][0])
         else:
-            screen.addstr(29, 2, "PLAYING STATION: " + station_title)
-            screen.addstr(30, 2, "TRACK: ")
-            screen.addstr(31, 2, "STATION ID: " + station_id)
-            screen.addstr(32, 2, "STATION URL: " + "Station URL not found")
-            screen.addstr(33, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+            screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+            screen.addstr(27, 2, "STATION ID: " + station_id)
+            screen.addstr(28, 2, "STATION URL: " + "Station URL not found")
+            screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.border(0)
         box.border(0)
         message_box.border(0)
@@ -182,14 +176,14 @@ while x != 27:
         if len(sc.station_info(save_id)['locations']) > 0:
             save_url = sc.station_info(save_id)['locations'][0]
             if int(save_id) in favorites:
-                message_box_apply(f"{save_title} {save_id} already added")
+                message_box_apply(f"{save_title} already added")
             else:
                 station = {
                     'id': int(save_id),
                     'name': save_title
                 }
                 user_data.save_station(station)
-                message_box_apply(f"Added {save_title} to saved stations {save_id}")
+                message_box_apply(f"Added {save_title} to saved stations")
                 favorites = user_data.get_saved_station_ids()
                 search_item_titles = list(map(lambda x: "❤ " + x['name'] if int(x['id']) in favorites else x['name'], search_item_stations))
         else:
@@ -204,18 +198,17 @@ while x != 27:
         position = current_position
         draw_scroll_box()
         draw_message_box()
-        screen.addstr(28, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(29, 2, "TRACK: ")
-        screen.addstr(30, 2, "STATION ID: " + station_id)
-        screen.addstr(31, 2, "STATION URL: " + station_url)
-        screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+        screen.addstr(27, 2, "STATION ID: " + station_id)
+        screen.addstr(28, 2, "STATION URL: " + station_url)
+        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.refresh()
         box.refresh()
         message_box.refresh()
         screen.border(0)
         box.border(0)
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.border(0)
         box.border(0)
         message_box.border(0)
@@ -230,10 +223,10 @@ while x != 27:
         current_page = page
         current_position = position
         if int(remove_id) not in favorites:
-            message_box_apply(f"{remove_title} {remove_id} already removed")
+            message_box_apply(f"{remove_title} already removed")
         else:
             user_data.remove_station(remove_id)
-            message_box_apply(f"Removed {remove_title} from saved stations {remove_id}")
+            message_box_apply(f"Removed {remove_title} from saved stations")
             favorites = user_data.get_saved_station_ids()
             search_item_titles = list(map(lambda x: "❤ " + x['name'] if int(x['id']) in favorites else x['name'], search_item_stations))
 
@@ -246,30 +239,29 @@ while x != 27:
         position = current_position
         draw_scroll_box()
         draw_message_box()
-        screen.addstr(28, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(29, 2, "TRACK: ")
-        screen.addstr(30, 2, "STATION ID: " + station_id)
-        screen.addstr(31, 2, "STATION URL: " + station_url)
-        screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+        screen.addstr(27, 2, "STATION ID: " + station_id)
+        screen.addstr(28, 2, "STATION URL: " + station_url)
+        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.refresh()
         box.refresh()
         message_box.refresh()
         screen.border(0)
         box.border(0)
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.border(0)
         box.border(0)
         message_box.border(0)
 
     if x == ord("a"):
-        screen.addstr(32, 2, "Volume: " + vlc.volume_up() + "  ")
+        screen.addstr(29, 2, "Volume: " + vlc.volume_up() + "  ")
     if x == ord ("z"):
-        screen.addstr(32, 2, "Volume: " + vlc.volume_down() + "  ")
+        screen.addstr(29, 2, "Volume: " + vlc.volume_down() + "  ")
     if x == ord ("m"):
-        screen.addstr(34, 2, vlc.toggle_mute())
+        screen.addstr(31, 2, vlc.toggle_mute())
     if x == ord (" "):
-        screen.addstr(33, 2, "Status: " + vlc.toggle_play() + "   ")
+        screen.addstr(29, 2, "Status: " + vlc.toggle_play() + "   ")
     if x == ord("f"):
         message_box_apply("Favorites list")
         stations = user_data.get_stations()
@@ -290,12 +282,11 @@ while x != 27:
         page = 1
         draw_scroll_box()
         draw_message_box()
-        screen.addstr(28, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(29, 2, "TRACK: ")
-        screen.addstr(30, 2, "STATION ID: " + station_id)
-        screen.addstr(31, 2, "STATION URL: " + station_url)
-        screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+        screen.addstr(27, 2, "STATION ID: " + station_id)
+        screen.addstr(28, 2, "STATION URL: " + station_url)
+        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.refresh()
         box.refresh()
         message_box.refresh()
@@ -306,8 +297,6 @@ while x != 27:
         screen.erase()
         screen.border(0)
         screen.addstr(1,1, 'Search for a stream:', curses.A_BOLD)
-        #window1, panel1 = create_panel('Results', 30, 50, 5, 11)
-        #curses.panel.update_panels()
         screen.refresh()
         screen.move(10,26)
         curses.echo()
@@ -339,12 +328,11 @@ while x != 27:
         page = 1
         draw_scroll_box()
         draw_message_box()
-        screen.addstr(28, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(29, 2, "TRACK: ")
-        screen.addstr(30, 2, "STATION ID: " + station_id)
-        screen.addstr(31, 2, "STATION URL: " + station_url)
-        screen.addstr(32, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(33, 2, "Status: " + vlc.get_play())
+        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
+        screen.addstr(27, 2, "STATION ID: " + station_id)
+        screen.addstr(28, 2, "STATION URL: " + station_url)
+        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
+        screen.addstr(30, 2, "Status: " + vlc.get_play())
         screen.refresh()
         box.refresh()
         message_box.refresh()
