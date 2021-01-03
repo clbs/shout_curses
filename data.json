@@ -56,8 +56,12 @@
         {
             "id": 99509000,
             "name": "La M Mexicana"
+        },
+        {
+            "id": 1449086,
+            "name": "Gallup Public Radio Stream - Powered by Shoutcheap.com"
         }
     ],
-    "volume": 90,
+    "volume": 60,
     "mute": false
 }

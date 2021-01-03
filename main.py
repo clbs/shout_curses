@@ -75,11 +75,11 @@ def draw_scroll_box():
         else:
             if (i + (max_row * (page - 1)) == position + (max_row * (page - 1))):
                 line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                if row_exists(i - (max_row * (page - 1)) + 3):
+                if row_exists(i - (max_row * (page - 1)) + 4):
                   box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
             else:
                 line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                if row_exists(i - (max_row * (page - 1)) + 3):
+                if row_exists(i - (max_row * (page - 1)) + 4):
                     box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], normalText)
             if i >= row_num and i <= len(strings):
                 box.clrtobot()
@@ -314,6 +314,10 @@ while x != 27:
         pages = int(ceil(row_num / max_row))
         position = 1
         page = 1
+
+    if x == ord("q"):
+        curses.endwin()
+        exit()
 
     screen.erase()
     box_height = max_row + 2
