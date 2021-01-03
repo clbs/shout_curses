@@ -24,8 +24,40 @@
         {
             "id": 1654958,
             "name": "Bassdrive - Worldwide Drum and Bass Radio"
+        },
+        {
+            "id": 1588169,
+            "name": "Deep House Radio ( DHR, Cork City, Ireland ) www.deephouse-radio.com"
+        },
+        {
+            "id": 1673355,
+            "name": "Deep House Network"
+        },
+        {
+            "id": 1844328,
+            "name": "Radio Marbella - Vocal Deep House"
+        },
+        {
+            "id": 99445895,
+            "name": "Hirschmilch Prog-House"
+        },
+        {
+            "id": 99492886,
+            "name": "Dogglounge Deep House Radio"
+        },
+        {
+            "id": 186925,
+            "name": "DEEP HOUSE LOUNGE - [www.deephouselounge.com]"
+        },
+        {
+            "id": 1475311,
+            "name": "#DARKSTEP - DnBRadio Channel - the heaviest in techstep, crossbreed, hardcore"
+        },
+        {
+            "id": 99509000,
+            "name": "La M Mexicana"
         }
     ],
-    "volume": 40,
+    "volume": 90,
     "mute": false
 }

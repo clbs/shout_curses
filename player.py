@@ -13,6 +13,15 @@ class VLCPlayer:
     self.player.set_media(stream_instance)
     self.player.play()
 
+  def set_volume(self, volume):
+    if volume >= 200:
+      self.player.audio_set_volume(200)
+    elif volume <= 0:
+      self.player.audio_set_volume(0)
+    else:
+      self.player.audio_set_volume(int(volume))
+    return str(self.player.audio_get_volume())
+
   def volume_up(self):
     if self.player.audio_get_volume() >= 190:
       self.player.audio_set_volume(200)

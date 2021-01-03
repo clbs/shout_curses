@@ -87,6 +87,28 @@ class UserData:
       print(e)
       return [{}]
 
+  def save_volume(self, volume):
+    try:
+      with open(self.config_filename, "r+") as user_data:
+        data = json.load(user_data)
+        data['volume'] = int(volume)
+        user_data.seek(0)
+        user_data.write(json.dumps(data, indent=4))
+        user_data.truncate()
+        user_data.close()
+    except Exception as e:
+      print(e)
+
+  def get_volume(self):
+    try:
+      with open(self.config_filename, "r+") as user_data:
+        data = json.load(user_data)
+        return data['volume']
+        user_data.close()
+    except Exception as e:
+      return 0
+      print(e)
+
   def save_search(self, search_term):
     return 0
 

@@ -12,6 +12,7 @@ load_dotenv(find_dotenv())
 vlc = VLCPlayer()
 
 user_data = UserData(getenv('USER_DATA_CONFIG'))
+vlc.set_volume(int(user_data.get_volume()))
 
 screen = curses.initscr()
 curses.noecho()
@@ -27,7 +28,10 @@ max_row = 20 #max number of rows
 height = 100
 width = 100
 height, width = screen.getmaxyx()
-box = curses.newwin(max_row + 2, width - 2, 1, 1)
+box_height = max_row
+if height < max_row + 2:
+        box_height = height - 2
+box = curses.newwin(box_height, width - 2, 1, 1)
 message_box = curses.newwin(3, width - 2, max_row + 3, 1)
 search_string = ""
 message_box_message = "Welcome to Shout Curses"
@@ -37,6 +41,9 @@ box.box()
 station_title = ""
 station_id = ""
 station_url = ""
+station_volume = vlc.get_volume()
+station_playing = ""
+station_mute = ""
 
 
 sc = ShoutCast(getenv('SHOUTCAST_API_KEY'), 'json')
@@ -49,17 +56,18 @@ search_item_titles = list(map(lambda x: str("❤ " + x['name'] if int(x['id']) i
 strings = search_item_titles
 row_num = len(strings)
 
-screen.addstr(26, 2, "PLAYING STATION:            ")
-screen.addstr(27, 2, "STATION ID:                 ")
-screen.addstr(28, 2, "STATION URL:                           ")
-screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-screen.addstr(30, 2, "Status: " + vlc.get_play())
-screen.addstr(31, 2, vlc.get_mute())
-
 pages = int(ceil(row_num / max_row))
 position = 1
 page = 1
 
+# Checks if a row exists before write
+def row_exists(row):
+    if height >= row:
+        return True
+    else:
+        return False
+
+# Draws the items currently displayed in the scroll box
 def draw_scroll_box():
     for i in range(1 + (max_row * (page - 1)), max_row + 1 + (max_row * (page - 1))):
         if row_num == 0:
@@ -67,10 +75,12 @@ def draw_scroll_box():
         else:
             if (i + (max_row * (page - 1)) == position + (max_row * (page - 1))):
                 line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
+                if row_exists(i - (max_row * (page - 1)) + 3):
+                  box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
             else:
                 line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], normalText)
+                if row_exists(i - (max_row * (page - 1)) + 3):
+                    box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], normalText)
             if i >= row_num and i <= len(strings):
                 box.clrtobot()
                 box.border(0)
@@ -78,16 +88,44 @@ def draw_scroll_box():
             if i == row_num:
                 break
 
+# Applies the message box in the correct 
 def message_box_apply(message):
     global message_box_message
     message_extended = message + " " * width
     message_box_message = message_extended[0:width -5]
 
-
+# Draws the message box
 def draw_message_box():
     message_box.addstr(1, 1, message_box_message)
 
+# Draws the player status area
+def draw_player_status(station, station_id, station_url, volume, status, mute):
+    if  row_exists(max_row + 8):
+        station_fill = "Station: " + station + " " * width
+        screen.addstr(max_row + 6, 2, station_fill[0:width - 3])
 
+    if row_exists(max_row + 9):
+        station_id_fill = "Station ID: " + station_id + " " * width
+        screen.addstr(max_row + 7, 2, station_id_fill[0:width - 3])
+
+    if row_exists(max_row + 10):
+        station_url_fill = "Station URL: " + station_url + " " * width
+        screen.addstr(max_row + 8, 2, station_url_fill[0:width - 3])
+
+    if row_exists(max_row + 11):
+        volume_fill = "Volume: " + str(volume) + " " * width
+        screen.addstr(max_row + 9, 2, volume_fill[0:width - 3])
+
+    if row_exists(max_row + 12):
+        status_fill = "Status: " + status + " " * width
+        screen.addstr(max_row + 10, 2, status_fill[0:width - 3])
+
+    if row_exists(max_row + 13):
+        mute_fill = "Mute: " + mute + " " * width
+        screen.addstr(max_row + 11, 2, mute_fill[0:width - 3])
+
+
+draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
 draw_scroll_box()
 draw_message_box()
 screen.refresh()
@@ -104,6 +142,8 @@ def get_row_end():
 x = screen.getch()
 while x != 27:
     height, width = screen.getmaxyx()
+    
+    # Scroll box controll section
     if x == curses.KEY_DOWN:
         if page == 1:
             if position < get_row_end():
@@ -140,7 +180,7 @@ while x != 27:
             page = page + 1
             position = (1 + (max_row * (page - 1)))
 
-    #play highlighted station
+    # Play highlighted station
     if x == ord("\n") and row_num != 0:
         screen.erase()
         screen.border(0)
@@ -148,26 +188,12 @@ while x != 27:
         station_title = str(search_item_stations[position - 1]['name'])
         if len(sc.station_info(station_id)['locations']) > 0:
             station_url = sc.station_info(station_id)['locations'][0]
-            screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-            screen.addstr(27, 2, "STATION ID: " + station_id)
-            screen.addstr(28, 2, "STATION URL: " + station_url)
-            screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
             vlc.stream_media(sc.station_info(station_id)['locations'][0])
         else:
-            screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-            screen.addstr(27, 2, "STATION ID: " + station_id)
-            screen.addstr(28, 2, "STATION URL: " + "Station URL not found")
-            screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        box = curses.newwin(max_row + 2, width - 2, 1, 1)
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        box.box()
-        message_box.box()
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.border(0)
-        box.border(0)
-        message_box.border(0)
+            station_url = "Station URL not found"
+        station_playing = vlc.get_play()
     
-    #save highlighted station to favorites
+    # Save highlighted station to favorites
     if x == ord("s") and row_num != 0:
         screen.erase()
         screen.border(0)
@@ -192,33 +218,13 @@ while x != 27:
         else:
             message_box_apply(f"Error adding {save_title}, no stream location")
 
-        box = curses.newwin(max_row + 2, width - 2, 1, 1)
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        box.box()
-        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
         page = current_page
         position = current_position
-        draw_scroll_box()
-        draw_message_box()
-        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(27, 2, "STATION ID: " + station_id)
-        screen.addstr(28, 2, "STATION URL: " + station_url)
-        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.refresh()
-        box.refresh()
-        message_box.refresh()
-        screen.border(0)
-        box.border(0)
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.border(0)
-        box.border(0)
-        message_box.border(0)
     
-    # remove highlighted station from favorites
+    # Remove highlighted station from favorites
     if x == ord("d") and row_num != 0:
         screen.erase()
         screen.border(0)
@@ -235,40 +241,31 @@ while x != 27:
             favorites = user_data.get_saved_station_ids()
             search_item_titles = list(map(lambda x: "❤ " + x['name'] if int(x['id']) in favorites else x['name'], search_item_stations))
 
-        box = curses.newwin(max_row + 2, width - 2, 1, 1)
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        box.box()
-        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
         page = current_page
         position = current_position
-        draw_scroll_box()
-        draw_message_box()
-        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(27, 2, "STATION ID: " + station_id)
-        screen.addstr(28, 2, "STATION URL: " + station_url)
-        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.refresh()
-        box.refresh()
-        message_box.refresh()
-        screen.border(0)
-        box.border(0)
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.border(0)
-        box.border(0)
-        message_box.border(0)
 
+    # Volume up
     if x == ord("a"):
-        screen.addstr(29, 2, "Volume: " + vlc.volume_up() + "  ")
+        station_volume = vlc.volume_up()
+        user_data.save_volume(station_volume)
+
+    # Volume down
     if x == ord ("z"):
-        screen.addstr(29, 2, "Volume: " + vlc.volume_down() + "  ")
+        station_volume = vlc.volume_down()
+        user_data.save_volume(station_volume)
+
+    # Toggle Mute
     if x == ord ("m"):
-        screen.addstr(31, 2, vlc.toggle_mute())
+        station_mute = vlc.toggle_mute()
+    
+    # Toggle pause and mute
     if x == ord (" "):
-        screen.addstr(29, 2, "Status: " + vlc.toggle_play() + "   ")
+        station_playing = vlc.toggle_play()
+
+    # Open favorites list
     if x == ord("f"):
         message_box_apply("Favorites list")
         stations = user_data.get_stations()
@@ -279,29 +276,13 @@ while x != 27:
         else:
             search_item_titles = []
             search_item_stations = []
-
-        box = curses.newwin(max_row + 2, width - 2, 1, 1)
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        box.box()
-        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
         position = 1
         page = 1
-        draw_scroll_box()
-        draw_message_box()
-        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(27, 2, "STATION ID: " + station_id)
-        screen.addstr(28, 2, "STATION URL: " + station_url)
-        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.refresh()
-        box.refresh()
-        message_box.refresh()
-        screen.border(0)
-        box.border(0)
-        message_box.border(0)
+
+    # Search streams
     if x == ord("/"):
         screen.erase()
         screen.border(0)
@@ -328,34 +309,31 @@ while x != 27:
             search_item_stations = []
 
         message_box_apply(f"Search results for: {search_string}")
-        box = curses.newwin(max_row + 2, width - 2, 1, 1)
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        box.box()
-        message_box.box()
         strings = search_item_titles
         row_num = len(strings)
         pages = int(ceil(row_num / max_row))
         position = 1
         page = 1
-        draw_scroll_box()
-        draw_message_box()
-        screen.addstr(26, 2, "PLAYING STATION: " + station_title)
-        screen.addstr(27, 2, "STATION ID: " + station_id)
-        screen.addstr(28, 2, "STATION URL: " + station_url)
-        screen.addstr(29, 2, "Volume: " + str(vlc.player.audio_get_volume()) + "  ")
-        screen.addstr(30, 2, "Status: " + vlc.get_play())
-        screen.refresh()
-        box.refresh()
-        message_box.refresh()
-        screen.border(0)
-        box.border(0)
-        message_box.border(0)
 
+    screen.erase()
+    box_height = max_row + 2
+    if height < max_row + 2:
+        box_height = height - 2
+    box = curses.newwin(box_height, width - 2, 1, 1)
+    message_box = curses.newwin(3, width - 2, max_row + 3, 1)
+    box.box()
+    message_box.box()
+    screen.border(0)
+    screen.border(0)
+    box.border(0)
+    message_box.border(0)
     draw_scroll_box()
     draw_message_box()
+    draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
     screen.refresh()
     message_box.refresh()
     box.refresh()
+
     x = screen.getch()
 
 curses.endwin()
