@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+
 import curses
 from math import ceil
 from shoutcast_data import ShoutCast
 from player import VLCPlayer
 from user_data import UserData
 from os import getenv as getenv
+from os import path as path
 import dotenv
 from dotenv import load_dotenv, find_dotenv
 
@@ -11,7 +14,7 @@ load_dotenv(find_dotenv())
 
 vlc = VLCPlayer()
 
-user_data = UserData(getenv('USER_DATA_CONFIG'))
+user_data = UserData(path.abspath(__file__).replace('main.py', '') + getenv('USER_DATA_CONFIG'))
 vlc.set_volume(int(user_data.get_volume()))
 
 screen = curses.initscr()
@@ -74,13 +77,15 @@ def draw_scroll_box():
             box.addstr(1, 1, "No items found" + search_string,  highlightText)
         else:
             if (i + (max_row * (page - 1)) == position + (max_row * (page - 1))):
-                line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                if row_exists(i - (max_row * (page - 1)) + 4):
-                  box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
+                if len(strings) > i - 1:
+                    line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
+                    if row_exists(i - (max_row * (page - 1)) + 4):
+                        box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], highlightText)
             else:
-                line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
-                if row_exists(i - (max_row * (page - 1)) + 4):
-                    box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], normalText)
+                if len(strings) > i - 1:
+                    line_string = str(i) + ": " + str(strings[i - 1]) + " " * width
+                    if row_exists(i - (max_row * (page - 1)) + 4):
+                        box.addstr(i - (max_row * (page - 1)), 2, line_string[0:width - 5], normalText)
             if i >= row_num and i <= len(strings):
                 box.clrtobot()
                 box.border(0)
@@ -91,12 +96,13 @@ def draw_scroll_box():
 # Applies the message box in the correct 
 def message_box_apply(message):
     global message_box_message
-    message_extended = message + " " * width
-    message_box_message = message_extended[0:width -5]
+    message_box_message = message
 
 # Draws the message box
 def draw_message_box():
-    message_box.addstr(1, 1, message_box_message)
+    if row_exists(max_row + 6):
+        message_extended = message_box_message + " " * width
+        message_box.addstr(1, 1, message_extended[0: width - 5])
 
 # Draws the player status area
 def draw_player_status(station, station_id, station_url, volume, status, mute):
@@ -278,7 +284,8 @@ while x != 27:
             search_item_stations = []
         strings = search_item_titles
         row_num = len(strings)
-        pages = int(ceil(row_num / max_row))
+        if max_row > 0:
+         pages = int(ceil(row_num / max_row))
         position = 1
         page = 1
 
@@ -311,7 +318,8 @@ while x != 27:
         message_box_apply(f"Search results for: {search_string}")
         strings = search_item_titles
         row_num = len(strings)
-        pages = int(ceil(row_num / max_row))
+        if max_row > 0:
+         pages = int(ceil(row_num / max_row))
         position = 1
         page = 1
 
@@ -320,20 +328,28 @@ while x != 27:
         exit()
 
     screen.erase()
+    if height > 20:
+        max_row = height - 12
+    elif height < 20:
+        max_row = height - 4
     box_height = max_row + 2
     if height < max_row + 2:
         box_height = height - 2
     box = curses.newwin(box_height, width - 2, 1, 1)
-    message_box = curses.newwin(3, width - 2, max_row + 3, 1)
+    if height > 20:
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
+        message_box.box()
+    if max_row > 0:
+        pages = int(ceil(row_num / max_row))
     box.box()
-    message_box.box()
     screen.border(0)
     screen.border(0)
     box.border(0)
     message_box.border(0)
     draw_scroll_box()
-    draw_message_box()
-    draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
+    if height > 20:
+        draw_message_box()
+        draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
     screen.refresh()
     message_box.refresh()
     box.refresh()
