@@ -60,8 +60,12 @@
         {
             "id": 1449086,
             "name": "Gallup Public Radio Stream - Powered by Shoutcheap.com"
+        },
+        {
+            "id": 1785029,
+            "name": "Chillhop &amp; LoFi HipHop Radio / / Chillsky Beats"
         }
     ],
-    "volume": 70,
+    "volume": 80,
     "mute": false
 }

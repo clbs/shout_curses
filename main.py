@@ -192,9 +192,11 @@ while x != 27:
         screen.border(0)
         station_id = str(search_item_stations[position - 1]['id'])
         station_title = str(search_item_stations[position - 1]['name'])
-        if len(sc.station_info(station_id)['locations']) > 0:
-            station_url = sc.station_info(station_id)['locations'][0]
-            vlc.stream_media(sc.station_info(station_id)['locations'][0])
+        station_info: dict = sc.station_info(station_id)
+        locations_list = station_info['locations']
+        if len(locations_list) > 0:
+            station_url = locations_list[0]
+            vlc.stream_media(locations_list[0])
         else:
             station_url = "Station URL not found"
         station_playing = vlc.get_play()
