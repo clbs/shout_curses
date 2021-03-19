@@ -150,7 +150,7 @@ while x != 27:
     height, width = screen.getmaxyx()
     
     # Scroll box controll section
-    if x == curses.KEY_DOWN:
+    if x == curses.KEY_DOWN or x == ord("j"):
         if page == 1:
             if position < get_row_end():
                 position = position + 1
@@ -167,7 +167,7 @@ while x != 27:
             else:
                 page = page + 1
                 position = 1 + (max_row * (page - 1))
-    if x == curses.KEY_UP:
+    if x == curses.KEY_UP or x == ord("k"):
         if page == 1:
             if position > 1:
                 position = position - 1
