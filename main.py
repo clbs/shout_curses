@@ -131,12 +131,35 @@ def draw_player_status(station, station_id, station_url, volume, status, mute):
         screen.addstr(max_row + 11, 2, mute_fill[0:width - 3])
 
 
-draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
-draw_scroll_box()
-draw_message_box()
-screen.refresh()
-box.refresh()
-message_box.refresh()
+def redraw_screen():
+    global height, width, max_row, box_height, row_num, station_title, station_id, station_url, station_volume, station_playing, station_mute, box, message_box, screen
+    if height > 20:
+        max_row = height - 12
+    elif height < 20:
+        max_row = height - 4
+    box_height = max_row + 2
+    if height < max_row + 2:
+        box_height = height - 2
+    box = curses.newwin(box_height, width - 2, 1, 1)
+    if height > 20:
+        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
+        message_box.box()
+    if max_row > 0:
+        pages = int(ceil(row_num / max_row))
+    box.box()
+    screen.border(0)
+    screen.border(0)
+    box.border(0)
+    message_box.border(0)
+    draw_scroll_box()
+    if height > 20:
+        draw_message_box()
+        draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
+    screen.refresh()
+    message_box.refresh()
+    box.refresh()
+
+redraw_screen()
 
 def get_row_end():
     if  max_row + 1 + (max_row * (page - 1))-1 < len(strings):
@@ -177,11 +200,11 @@ while x != 27:
             else:
                 page = page - 1
                 position = max_row + (max_row * (page - 1))
-    if x == curses.KEY_LEFT:
+    if x == curses.KEY_LEFT or x == ord("h"):
         if page > 1:
             page = page - 1
             position = 1 + (max_row * (page - 1))
-    if x == curses.KEY_RIGHT:
+    if x == curses.KEY_RIGHT or x == ord("l"):
         if page < pages:
             page = page + 1
             position = (1 + (max_row * (page - 1)))
@@ -330,31 +353,7 @@ while x != 27:
         exit()
 
     screen.erase()
-    if height > 20:
-        max_row = height - 12
-    elif height < 20:
-        max_row = height - 4
-    box_height = max_row + 2
-    if height < max_row + 2:
-        box_height = height - 2
-    box = curses.newwin(box_height, width - 2, 1, 1)
-    if height > 20:
-        message_box = curses.newwin(3, width - 2, max_row + 3, 1)
-        message_box.box()
-    if max_row > 0:
-        pages = int(ceil(row_num / max_row))
-    box.box()
-    screen.border(0)
-    screen.border(0)
-    box.border(0)
-    message_box.border(0)
-    draw_scroll_box()
-    if height > 20:
-        draw_message_box()
-        draw_player_status(station_title, station_id, station_url, station_volume, station_playing, station_mute)
-    screen.refresh()
-    message_box.refresh()
-    box.refresh()
+    redraw_screen()
 
     x = screen.getch()
 

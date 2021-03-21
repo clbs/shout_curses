@@ -64,8 +64,12 @@
         {
             "id": 1785029,
             "name": "Chillhop &amp; LoFi HipHop Radio / / Chillsky Beats"
+        },
+        {
+            "id": 99509252,
+            "name": "Jessshoe"
         }
     ],
-    "volume": 70,
+    "volume": 80,
     "mute": false
 }
